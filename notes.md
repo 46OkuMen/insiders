@@ -80,9 +80,42 @@ Typing text, scrolling text, post-title screen text all seem to be in IDS
 
 Sphinx text is at 3e5f0~
 	ISS location 8400 gets loaded into memory at location 3e340.
-	3e340 - 8400 = 35f40
+	3e340 - 8400 = 35f50~
 
 Considerations: When there's a long block of stuff AFTER some text I want to replace, like "33 A6 33 A6...", I may need to replace this with something that makes it zero out (or 55 out) in the plaintext...
 
-IDS appears to decompress starting at 0x2800.
+IDS appears to decompress starting at 0x2800. (memory 28740)
 Bytes 1f-20 are 00 28.
+
+So where does EDX get initialized?
+	5a4b doesn't show up anywhere, but 4b5a shows up:
+		at 0x2805
+		at 0x2809
+		at 0x3223
+	5a4b also shows up at the beginning of ISS
+
+ISS gets loaded into memory starting at 35f50.
+	EAX is 0000, EDX is 4b5a again.
+
+Possibilities:
+	EDX is always 4b5a
+	EDX is set to [bx+5]
+
+FILES WITH TEXT:
+	ISS (compressed)
+	IDS (compressed)
+		Interface text, actions, etc. at 0x3400
+		Post-title screen intro text at 0xb800
+	IS2 (compressed)
+	ALD (compressed)
+	AMD (compressed)
+	BKD (compressed)
+	CPU (compressed)
+	DAT1 (compressed)
+	BOOK (not compressed)
+
+OTHER FILES:
+	ALC (?)
+	BASM ("MAP1")
+	BASP (?)
+	BKC (?)
