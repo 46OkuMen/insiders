@@ -148,6 +148,7 @@ def dump(files):
                 # Catch anything left after exiting the loop
                 if sjis_buffer:
                     sjis_strings.append((sjis_buffer_start, sjis_buffer))
+                    sjis_buffer = b''
 
 
             if len(sjis_strings) == 0:
@@ -159,6 +160,8 @@ def dump(files):
                     s = (s[0] + 1, s[1][1:])
                     #s[1] = s[1][1:]
                     #s[0] += 1
+
+                s = (s[0], s[1].rstrip(b'U'))
 
                 if len(s[1]) < THRESHOLD:
                     continue
