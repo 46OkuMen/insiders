@@ -6,7 +6,7 @@
 import sys
 import os
 import xlsxwriter
-from rominfo import FILE_BLOCKS
+from rominfo import FILE_BLOCKS, FILES, UNCOMPRESSED_FILES
 from romtools.disk import Gamefile, Block
 
 COMPILER_MESSAGES = [b'Turbo', b'Borland', b'C++', b'Library', b'Copyright']
@@ -70,9 +70,9 @@ def find_blocks(file):
 
 def dump(files):
     for filename in files:
-        clean_filename = filename.replace('.decompressed', '')
+        #clean_filename = filename.replace('.decompressed', '')
 
-        worksheet = workbook.add_worksheet(clean_filename)
+        worksheet = workbook.add_worksheet(filename)
         worksheet.write(0, 0, 'Offset', header)
         worksheet.write(0, 1, 'Japanese', header)
         worksheet.write(0, 2, 'JP_len', header)
@@ -88,8 +88,14 @@ def dump(files):
         worksheet.set_column('F:F', 60)
 
         row = 1
-        blocks = FILE_BLOCKS[clean_filename]
-        with open(os.path.join('patched', filename), 'rb') as f:
+        blocks = FILE_BLOCKS[filename]
+
+        if filename not in UNCOMPRESSED_FILES:
+            src_filepath = 'original/decompressed/%s.decompressed' % filename
+        else:
+            src_filepath = 'original/%s' % filename
+
+        with open(os.path.join(src_filepath), 'rb') as f:
             contents = f.read()
 
             cursor = 0
@@ -105,43 +111,43 @@ def dump(files):
                     sjis_buffer_start = contents.index(c)
                     break
 
-            while cursor < len(contents):
-                if not any([start <= cursor <= stop for (start, stop) in blocks]):
+            for (start, stop) in blocks:
+                cursor = start
+                sjis_buffer_start = cursor
+
+                while cursor <= stop:
+                    # First byte of SJIS text. Read the next one, too
+                    if 0x80 <= contents[cursor] <= 0x9f or 0xe0 <= contents[cursor] <= 0xef:
+                        #print(bytes(contents[cursor]))
+                        sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+                        cursor += 1
+                        sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+                    # Halfwidth katakana
+                    elif 0xa1 <= contents[cursor] <= 0xdf:
+                        sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+                    # ASCII text
+                    elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
+                        sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+                    # C string formatting with %
+                    #elif contents[cursor] == 0x25:
+                    #    #sjis_buffer += b'%'
+                    #    cursor += 1
+                    #    if contents[cursor]
+
+                    # End of continuous SJIS string, so add the buffer to the strings and reset buffer
+                    else:
+                        sjis_strings.append((sjis_buffer_start, sjis_buffer))
+                        sjis_buffer = b""
+                        sjis_buffer_start = cursor+1
                     cursor += 1
-                    continue
+                    #print(sjis_buffer)
 
-                # First byte of SJIS text. Read the next one, too
-                if 0x80 <= contents[cursor] <= 0x9f or 0xe0 <= contents[cursor] <= 0xef:
-                    #print(bytes(contents[cursor]))
-                    sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-                    cursor += 1
-                    sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-                # Halfwidth katakana
-                elif 0xa1 <= contents[cursor] <= 0xdf:
-                    sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-                # ASCII text
-                elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
-                    sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-                # C string formatting with %
-                #elif contents[cursor] == 0x25:
-                #    #sjis_buffer += b'%'
-                #    cursor += 1
-                #    if contents[cursor]
-
-                # End of continuous SJIS string, so add the buffer to the strings and reset buffer
-                else:
+                # Catch anything left after exiting the loop
+                if sjis_buffer:
                     sjis_strings.append((sjis_buffer_start, sjis_buffer))
-                    sjis_buffer = b""
-                    sjis_buffer_start = cursor+1
-                cursor += 1
-                #print(sjis_buffer)
-
-            # Catch anything left after exiting the loop
-            if sjis_buffer:
-                sjis_strings.append((sjis_buffer_start, sjis_buffer))
 
 
             if len(sjis_strings) == 0:
@@ -170,7 +176,6 @@ def dump(files):
 
                 worksheet.write(row, 0, loc)
                 worksheet.write(row, 1, jp)
-                #worksheet.write(row, 2, clean_filename)
                 row += 1
 
     workbook.close()
@@ -183,7 +188,7 @@ if __name__ == '__main__':
     workbook = xlsxwriter.Workbook("insiders" + '_dump.xlsx')
     header = workbook.add_format({'bold': True, 'align': 'center', 'bottom': True, 'bg_color': 'gray'})
     #FILES = [f for f in os.listdir('patched') if os.path.isfile(os.path.join('patched', f))]
-    FILES = ['IDS.decompressed', 'IS2.decompressed']
+    #FILES = ['IDS.decompressed', 'IS2.decompressed']
     print(FILES)
     dump(FILES)
 

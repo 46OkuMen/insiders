@@ -119,3 +119,8 @@ OTHER FILES:
 	BASM ("MAP1")
 	BASP (?)
 	BKC (?)
+
+# More notes
+* Some blocks are spaced out with UUUUUUUUUUUU's. Those can probably be reclaimed to get more space for stuff.
+* I think [=] should be a control code, since the dumps are freaking Excel out whenever a strings tarts with one.
+* What is the code that appends another JP ... to the "press z" instruction? Need to replace that.
