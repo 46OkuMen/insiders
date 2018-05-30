@@ -7,6 +7,7 @@ import sys
 import os
 import xlsxwriter
 from rominfo import FILE_BLOCKS
+from romtools.disk import Gamefile, Block
 
 COMPILER_MESSAGES = [b'Turbo', b'Borland', b'C++', b'Library', b'Copyright']
 
@@ -17,21 +18,76 @@ ASCII_MODE = 2
 
 THRESHOLD = 4
 
+"""
+def find_blocks(file):
+"""
+       # WIP. Finds blocks of normal strings separated with 00s.
+"""
+    THRESHOLD = 10
+
+    with open(file, 'rb') as f:
+        gf = Gamefile(file)
+        contents = f.read()
+
+        cursor = 0
+        blocks = []
+
+        sjis_buffer = b''
+
+        block_start = 0
+
+        while cursor < len(contents):
+            if 0x80 <= contents[cursor] <= 0x9f or 0xe0 <= contents[cursor] <= 0xef:
+                #print(bytes(contents[cursor]))
+                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+                cursor += 1
+                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+            # ASCII text
+            # TODO: But don't count continuous UUUUUUUUUUU
+            elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
+                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+            # 00s are okay, since we're looking for blocks
+            elif contents[cursor] == 0x00:
+                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+            else:
+                if len(sjis_buffer) > THRESHOLD:
+                    blocks.append(Block(gf, (block_start, cursor+1)))
+                sjis_buffer = b''
+                block_start = cursor+1
+            cursor += 1
+
+        if sjis_buffer:
+            blocks.append(Block(gf, (block_start, cursor+1)))
+
+        for b in blocks:
+            print(b)
+"""
+
+
 
 def dump(files):
-    worksheet = workbook.add_worksheet('Everything')
-    worksheet.write(0, 0, 'Offset', header)
-    worksheet.write(0, 1, 'Japanese', header)
-    worksheet.write(0, 2, 'File', header)
-    worksheet.write(0, 3, 'Comments', header)
-
-    worksheet.set_column('A:A', 8)
-    worksheet.set_column('B:B', 60)
-    worksheet.set_column('C:C', 15)
-    worksheet.set_column('D:D', 60)
-    row = 1
     for filename in files:
         clean_filename = filename.replace('.decompressed', '')
+
+        worksheet = workbook.add_worksheet(clean_filename)
+        worksheet.write(0, 0, 'Offset', header)
+        worksheet.write(0, 1, 'Japanese', header)
+        worksheet.write(0, 2, 'JP_len', header)
+        worksheet.write(0, 3, 'English', header)
+        worksheet.write(0, 4, 'EN_len', header)
+        worksheet.write(0, 5, 'Comments', header)
+
+        worksheet.set_column('A:A', 8)
+        worksheet.set_column('B:B', 60)
+        worksheet.set_column('C:C', 5)
+        worksheet.set_column('D:D', 60)
+        worksheet.set_column('E:E', 5)
+        worksheet.set_column('F:F', 60)
+
+        row = 1
         blocks = FILE_BLOCKS[clean_filename]
         with open(os.path.join('patched', filename), 'rb') as f:
             contents = f.read()
@@ -61,6 +117,10 @@ def dump(files):
                     cursor += 1
                     sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
 
+                # Halfwidth katakana
+                elif 0xa1 <= contents[cursor] <= 0xdf:
+                    sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
                 # ASCII text
                 elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
                     sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
@@ -88,6 +148,12 @@ def dump(files):
                 continue
 
             for s in sjis_strings:
+                # Remove leading U's
+                while s[1].startswith(b'U'):
+                    s = (s[0] + 1, s[1][1:])
+                    #s[1] = s[1][1:]
+                    #s[0] += 1
+
                 if len(s[1]) < THRESHOLD:
                     continue
 
@@ -104,7 +170,7 @@ def dump(files):
 
                 worksheet.write(row, 0, loc)
                 worksheet.write(row, 1, jp)
-                worksheet.write(row, 2, clean_filename)
+                #worksheet.write(row, 2, clean_filename)
                 row += 1
 
     workbook.close()
@@ -121,11 +187,4 @@ if __name__ == '__main__':
     print(FILES)
     dump(FILES)
 
-
-# TODO: It'd be even better if it just took a disk, or a bunch of disks, and used ndc to get files.
-# TODO: Column for disks
-
-# TODO: Export the dump to a google doc as well?
-
-# TODO: Detect blocks and export that to a skeleton rominfo.py file.
-    # (That could help with detecting some of the one-string-only "blocks" in code sections.)
+    #find_blocks('patched/IDS.decompressed')

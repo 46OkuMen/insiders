@@ -44,22 +44,31 @@ def decode(filename):
             cursor += 2
 
 def encode(filename):
+    if filename.endswith('.decompressed'):
+        src_filename = filename
+        dest_filename = filename.replace('.decompressed', '')
+    else:
+        src_filename = filename
+        dest_filename = filename + '.encoded'
+
+    print(src_filename, dest_filename)
+
+
     if "IDS" in filename:
         compression_start = MAGIC_BX
     else:
         compression_start = 0
 
-    with open('patched/%s.decompressed' % filename, 'rb') as f:
+    with open(src_filename, 'rb') as f:
         decomp = f.read()
 
-    with open('patched/%s' % filename, 'wb') as f:
+    with open(dest_filename, 'wb') as f:
         cursor = 0
         while cursor < compression_start:
             f.write(decomp[cursor].to_bytes(length=1, byteorder='little'))
             cursor += 1
 
         cursor = compression_start
-        stack = []
         ax = 0
         dx = MAGIC_DX
 
