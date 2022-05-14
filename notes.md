@@ -122,5 +122,31 @@ OTHER FILES:
 
 # More notes
 * Some blocks are spaced out with UUUUUUUUUUUU's. Those can probably be reclaimed to get more space for stuff.
-* I think [=] should be a control code, since the dumps are freaking Excel out whenever a strings tarts with one.
+	* I can subclass Block to get a method to look ahead a bit, and figure out how many UUU's can be replaced if a block is too long.
+* I think [=] should be a control code, since the dumps are freaking Excel out whenever a string starts with one.
+	* Treated it in the dumper, need to treat it in the reisnerter.
 * What is the code that appends another JP ... to the "press z" instruction? Need to replace that.
+* Insiders manual and map are included in Neo Kobe, but as part of Insiders 2 (Network no Bouken).
+	* Not the giant book we had heard about, but probably good enough if we can't find that.
+
+# 88 version
+* Insiders '88 appears a lot simpler in structure. Seems like all the text is not encoded, and put in IN.COM.
+	* But significantly less text? Is the game smaller or am I missing something?
+
+
+## Coming back to this in 2022
+* Reinserter looks to be basic.
+	* Individual strings can have different lengths, but blocks need to have diff <= 0.
+* Need to add support for control codes, start with [LN].
+* How do pointers work in this game?
+	* Pointers in the first scrolling text go to ba80, bab8, bae8, bb08, bb30, bb48.
+		* Offsets: 0, 38, 68, 88, b0, c8
+	* Text routine: Looks for 00, 0d, 1c, etc
+	* Text at bab8 gets read, not the previous byte.
+	* lodsb = load ds:si into al. (25f4:bae8 = 6c)
+		* Where is SI getting set?
+	* Looks like some numbers starting around 1a590 -
+		  * 6d fd be [80 ba] e8 77 fd be [b8 ba] e8 71 fd be [e8 ba] e8 6b fd be [08 bb] e8 65 fd be [30 bb] e8 fd fd be 48 bb e8 59 fd 
+		  * These are in the ICS (not IDS) base file and not the decompressed one. (3e5a)
+		  	* ICS doesn't have any text. Let's mark it as uncompressed
+* If we dump all the UUUUUU stuff, we can try replacing it and using it for text.

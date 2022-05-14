@@ -5,9 +5,9 @@
 FILES = ['IDS', 'ISS', 'IS2', 'ALD', 'AMD', 'BKD', 'CPU', 'DAT1', "DAT2",
          'DAT3', 'DAT4', 'DAT5', 'DAT6', 'DAT7', 'DAT8', 'BOOK', 'IPYR', 'FDD',
          'FRT', 'GAL', 'HMD', 'KGD', 'MAJ1', 'MAJ2', 'MAJ3', 'MAJ4', 'MAJ5',
-         'MAJ6', 'MAJ7', 'MAJ8', 'PBD', 'PRG', 'RAM', 'TIP', 'VRM', 'ZND']
+         'MAJ6', 'MAJ7', 'MAJ8', 'PBD', 'PRG', 'RAM', 'TIP', 'VRM', 'ZND', 'ICS']
 
-UNCOMPRESSED_FILES = ['BOOK']
+UNCOMPRESSED_FILES = ['BOOK', 'ICS']
 
 FILE_BLOCKS = {
     "IDS": [
@@ -18,15 +18,13 @@ FILE_BLOCKS = {
         (0x3436, 0x3477),
         (0x3478, 0x347f),
         (0x3480, 0x36dd),  # Lots of UU blocks that should be broken up
-        (0xb080, 0xb14e),
+        (0xb080, 0xb14e),  # First non-scrolling text after "Start Game"
         (0xb160, 0xb21a),
         (0xb230, 0xb2e2),
         (0xb300, 0xb353),
         (0xb401, 0xb6c2),
-        (0xb800, 0xba36),
-        (0xba80, 0xbab3),
-        (0xbab8, 0xbae7),
-        (0xbae9, 0xbc3f),  # Lots of UU blocks here too
+        (0xb800, 0xba36), # Console text upon first launch
+        (0xba80, 0xbc3f),  # Lots of UU blocks here too
     ],
 
     "ISS": [
@@ -384,4 +382,14 @@ FILE_BLOCKS = {
         (0xe50, 0xec4),
         (0xed0, 0xf81),
     ],
+}
+
+CONTROL_CODES = {
+  #b'[LN]': b'/',
+  #b'[WAIT1]': B_CONTROL_CODES[b'w'] + b'01',
+  #b'[WAIT2]': B_CONTROL_CODES[b'w'] + b'02',
+  #b'[00]': bytes([0x00]),
+  #b'[BLANK]': b'',
+  #b'[ee]': bytes([0xee]),
+  b'[LN]': b'\x0a\x0d', # \x0a\x0d
 }

@@ -18,56 +18,6 @@ ASCII_MODE = 2
 
 THRESHOLD = 4
 
-"""
-def find_blocks(file):
-"""
-       # WIP. Finds blocks of normal strings separated with 00s.
-"""
-    THRESHOLD = 10
-
-    with open(file, 'rb') as f:
-        gf = Gamefile(file)
-        contents = f.read()
-
-        cursor = 0
-        blocks = []
-
-        sjis_buffer = b''
-
-        block_start = 0
-
-        while cursor < len(contents):
-            if 0x80 <= contents[cursor] <= 0x9f or 0xe0 <= contents[cursor] <= 0xef:
-                #print(bytes(contents[cursor]))
-                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-                cursor += 1
-                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-            # ASCII text
-            # TODO: But don't count continuous UUUUUUUUUUU
-            elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
-                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-            # 00s are okay, since we're looking for blocks
-            elif contents[cursor] == 0x00:
-                sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
-
-            else:
-                if len(sjis_buffer) > THRESHOLD:
-                    blocks.append(Block(gf, (block_start, cursor+1)))
-                sjis_buffer = b''
-                block_start = cursor+1
-            cursor += 1
-
-        if sjis_buffer:
-            blocks.append(Block(gf, (block_start, cursor+1)))
-
-        for b in blocks:
-            print(b)
-"""
-
-
-
 def dump(files):
     for filename in files:
         #clean_filename = filename.replace('.decompressed', '')
@@ -128,8 +78,10 @@ def dump(files):
                         sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
 
                     # ASCII text
-                    elif 0x20 <=contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
+                    elif 0x20 <= contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
                         sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+                    # TODO: Often text is broken up with UUUUUU in ASCII. Can we treat this as blank space?
 
                     # C string formatting with %
                     #elif contents[cursor] == 0x25:
@@ -162,6 +114,9 @@ def dump(files):
                     #s[0] += 1
 
                 s = (s[0], s[1].rstrip(b'U'))
+
+                if s[1].startswith(b'='):
+                    s = (s[0], s[1].replace(b'=', b'[=]'))
 
                 if len(s[1]) < THRESHOLD:
                     continue

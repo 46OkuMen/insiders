@@ -5,7 +5,7 @@
 
 import os
 
-from rominfo import FILES, FILE_BLOCKS
+from rominfo import FILES, FILE_BLOCKS, CONTROL_CODES, UNCOMPRESSED_FILES
 from romtools.disk import Disk, Gamefile, Block
 from romtools.dump import DumpExcel
 from codec import encode
@@ -23,6 +23,7 @@ FILES_TO_REINSERT = ['IDS',]
 for filename in FILES_TO_REINSERT:
     gamefile_path = os.path.join('original', 'decompressed', filename + '.decompressed')
     gamefile = Gamefile(gamefile_path, disk=OriginalINS, dest_disk=TargetINS)
+    # No pointers identified yet
     #pointers = PtrDump.get_pointers(gamefile)
 
     for block in FILE_BLOCKS[filename]:
@@ -35,6 +36,13 @@ for filename in FILES_TO_REINSERT:
             if t.en_bytestring != t.jp_bytestring:
                 print(t)
                 loc_in_block = t.location - block.start + diff
+
+                # Replace control codes
+                for cc in CONTROL_CODES:
+                    if cc in t.en_bytestring:
+                        #print("Found the cc")
+                        t.en_bytestring = t.en_bytestring.replace(cc, CONTROL_CODES[cc])
+                #print(t.en_bytestring)
 
                 #print(t.jp_bytestring)
                 i = block.blockstring.index(t.jp_bytestring)
@@ -51,7 +59,11 @@ for filename in FILES_TO_REINSERT:
                 #    print("%s multiples of this string found" % j)
                 assert loc_in_block == i, (hex(loc_in_block), hex(i))
 
+
+
+                # Translated text replacement
                 block.blockstring = block.blockstring.replace(t.jp_bytestring, t.en_bytestring, 1)
+                #print(block.blockstring)
 
                 #gamefile.edit_pointers_in_range((previous_text_offset, t.location), diff)
                 previous_text_offset = t.location
@@ -67,10 +79,13 @@ for filename in FILES_TO_REINSERT:
 
         block.incorporate()
 
-    # TODO: Don't encode it if the file is in UNCOMPRESSED_FILES
-    gamefile.write(skip_disk=True)
-    decompressed_path = 'patched/%s' % gamefile.filename
-    print(decompressed_path)
-    encode(decompressed_path)
-    encoded_path = 'patched/' + filename
-    TargetINS.insert(encoded_path, path_in_disk='')
+    if filename in UNCOMPRESSED_FILES:
+        # No compression needed if the file is uncompressed to begin with
+        gamefile.write()
+        # TODO: Do I need to explcitly insert it into the disk too?
+    else:
+        gamefile.write(skip_disk=True)
+        decompressed_path = 'patched/%s' % gamefile.filename
+        encode(decompressed_path)
+        encoded_path = 'patched/' + filename
+        TargetINS.insert(encoded_path, path_in_disk='')
