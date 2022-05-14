@@ -150,3 +150,6 @@ OTHER FILES:
 		  * These are in the ICS (not IDS) base file and not the decompressed one. (3e5a)
 		  	* ICS doesn't have any text. Let's mark it as uncompressed
 * If we dump all the UUUUUU stuff, we can try replacing it and using it for text.
+* Walkthrough
+	* Hit 'Z'
+	* Walk up, talk 'N' twice
