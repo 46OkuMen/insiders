@@ -2,10 +2,17 @@
     Rom description of Insiders '94.'
 """
 
-FILES = ['IDS', 'ISS', 'IS2', 'ALD', 'AMD', 'BKD', 'CPU', 'DAT1', "DAT2",
+FILES = ['ICS', 'IDS', 'ISS', 'IS2', 'ALD', 'AMD', 'BKD', 'CPU', 'DAT1', "DAT2",
          'DAT3', 'DAT4', 'DAT5', 'DAT6', 'DAT7', 'DAT8', 'BOOK', 'IPYR', 'FDD',
          'FRT', 'GAL', 'HMD', 'KGD', 'MAJ1', 'MAJ2', 'MAJ3', 'MAJ4', 'MAJ5',
-         'MAJ6', 'MAJ7', 'MAJ8', 'PBD', 'PRG', 'RAM', 'TIP', 'VRM', 'ZND', 'ICS']
+         'MAJ6', 'MAJ7', 'MAJ8', 'PBD', 'PRG', 'RAM', 'TIP', 'VRM', 'ZND']
+
+# The above, but not ICS
+FILES_TO_DUMP = FILES = ['IDS', 'ISS', 'IS2', 'ALD', 'AMD', 'BKD', 'CPU', 'DAT1', "DAT2",
+         'DAT3', 'DAT4', 'DAT5', 'DAT6', 'DAT7', 'DAT8', 'BOOK', 'IPYR', 'FDD',
+         'FRT', 'GAL', 'HMD', 'KGD', 'MAJ1', 'MAJ2', 'MAJ3', 'MAJ4', 'MAJ5',
+         'MAJ6', 'MAJ7', 'MAJ8', 'PBD', 'PRG', 'RAM', 'TIP', 'VRM', 'ZND']
+
 
 UNCOMPRESSED_FILES = ['BOOK', 'ICS']
 
@@ -392,4 +399,5 @@ CONTROL_CODES = {
   #b'[BLANK]': b'',
   #b'[ee]': bytes([0xee]),
   b'[LN]': b'\x0a\x0d', # \x0a\x0d
+  b'[DELAY]': b'\x0e',
 }

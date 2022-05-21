@@ -21,7 +21,7 @@ PtrDump = PointerExcel(POINTER_XLS_PATH)
 OriginalINS = Disk(ORIGINAL_ROM_PATH, dump_excel=Dump, pointer_excel=PtrDump)
 TargetINS = Disk(TARGET_ROM_PATH)
 
-FILES_TO_REINSERT = ['IDS']
+FILES_TO_REINSERT = ['IDS', 'ISS']
 
 # TODO: Unsure if there are multiple pointer files, but there is ICS so far
 pointer_gamefile_path = os.path.join('original', 'ICS')
@@ -49,9 +49,12 @@ for filename in FILES_TO_REINSERT:
                     if cc in t.en_bytestring:
                         #print("Found the cc")
                         t.en_bytestring = t.en_bytestring.replace(cc, CONTROL_CODES[cc])
+                    if cc in t.jp_bytestring:
+                        print("Found a control code")
+                        t.jp_bytestring = t.jp_bytestring.replace(cc, CONTROL_CODES[cc])
                 #print(t.en_bytestring)
 
-                #print(t.jp_bytestring)
+                print(t.jp_bytestring)
                 i = block.blockstring.index(t.jp_bytestring)
                 j = block.blockstring.count(t.jp_bytestring)
 

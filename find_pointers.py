@@ -38,7 +38,7 @@ DUMP_XLS_PATH = 'insiders_dump.xlsx'
 POINTER_XLS_PATH = 'insiders_pointers.xlsx'
 Dump = DumpExcel(DUMP_XLS_PATH)
 # TODO: Add ORITTLE back in once I've mapped the CD version.
-files_to_search = ['IDS']
+files_to_search = ['IDS', 'ISS']
 pointer_files = ['ICS']
 
 problem_count = 0

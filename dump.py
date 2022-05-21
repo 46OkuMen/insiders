@@ -6,7 +6,7 @@
 import sys
 import os
 import xlsxwriter
-from rominfo import FILE_BLOCKS, FILES, UNCOMPRESSED_FILES
+from rominfo import FILE_BLOCKS, FILES_TO_DUMP, UNCOMPRESSED_FILES, CONTROL_CODES
 from romtools.disk import Gamefile, Block
 
 COMPILER_MESSAGES = [b'Turbo', b'Borland', b'C++', b'Library', b'Copyright']
@@ -54,7 +54,7 @@ def dump(files):
             sjis_strings = []
 
             for c in COMPILER_MESSAGES:
-                print(c)
+                #print(c)
                 if c in contents:
                     #print(contents)
                     cursor = contents.index(c)
@@ -80,6 +80,11 @@ def dump(files):
                     # ASCII text
                     elif 0x20 <= contents[cursor] <= 0x7e and ASCII_MODE in (1, 2):
                         sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+
+                    # "Delay" control code - hard-coded for now
+                    elif 0x0e == contents[cursor]:
+                        sjis_buffer += contents[cursor].to_bytes(1, byteorder='little')
+                        #sjis_buffer += b'[DELAY]'
 
                     # TODO: Often text is broken up with UUUUUU in ASCII. Can we treat this as blank space?
 
@@ -122,6 +127,14 @@ def dump(files):
                     continue
 
                 loc = '0x' + hex(s[0]).lstrip('0x').zfill(5)
+
+                # Repalce control codes
+                for cc in CONTROL_CODES:
+                    if CONTROL_CODES[cc] in s[1]:
+                        print(CONTROL_CODES[cc])
+                        s = (s[0], s[1].replace(CONTROL_CODES[cc], cc))
+                        print(s[1])
+
                 try:
                     jp = s[1].decode('shift-jis')
                 except UnicodeDecodeError:
@@ -130,10 +143,12 @@ def dump(files):
 
                 if len(jp.strip()) == 0:
                     continue
-                print(loc, jp)
+                #print(loc, jp)
 
                 worksheet.write(row, 0, loc)
                 worksheet.write(row, 1, jp)
+                worksheet.write(row, 2, "=LEN(B%i)" % (row-1))
+                worksheet.write(row, 4, "=LEN(D%i)" % (row-1))
                 row += 1
 
     workbook.close()
@@ -147,7 +162,7 @@ if __name__ == '__main__':
     header = workbook.add_format({'bold': True, 'align': 'center', 'bottom': True, 'bg_color': 'gray'})
     #FILES = [f for f in os.listdir('patched') if os.path.isfile(os.path.join('patched', f))]
     #FILES = ['IDS.decompressed', 'IS2.decompressed']
-    print(FILES)
-    dump(FILES)
+    print(FILES_TO_DUMP)
+    dump(FILES_TO_DUMP)
 
     #find_blocks('patched/IDS.decompressed')

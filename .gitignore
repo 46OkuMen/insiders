@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+
+original/
+patched/
+manual/
+*.xlsx

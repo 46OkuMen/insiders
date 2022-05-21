@@ -149,7 +149,16 @@ OTHER FILES:
 		  * 6d fd be [80 ba] e8 77 fd be [b8 ba] e8 71 fd be [e8 ba] e8 6b fd be [08 bb] e8 65 fd be [30 bb] e8 fd fd be 48 bb e8 59 fd 
 		  * These are in the ICS (not IDS) base file and not the decompressed one. (3e5a)
 		  	* ICS doesn't have any text. Let's mark it as uncompressed
+	* Seems like there are maybe no pointers for individual dialogue? (Non-scrolling). Changing text length of string 15 doesn't seem to affect string 16, it just shows up as expected.
 * If we dump all the UUUUUU stuff, we can try replacing it and using it for text.
 * Walkthrough
 	* Hit 'Z'
 	* Walk up, talk 'N' twice
+* [DELAY] control code = 0x0e
+	* Doesn't seem to do anything when reinserted?
+		* Does it need to be word-aligned?
+		* If it's doing something, it is way more subtle than with fullwidth text
+
+## Typesetting
+* Dialogue max length per line: 40
+* Max lines on screen: 4?
