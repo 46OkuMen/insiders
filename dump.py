@@ -131,9 +131,9 @@ def dump(files):
                 # Repalce control codes
                 for cc in CONTROL_CODES:
                     if CONTROL_CODES[cc] in s[1]:
-                        print(CONTROL_CODES[cc])
+                        #print(CONTROL_CODES[cc])
                         s = (s[0], s[1].replace(CONTROL_CODES[cc], cc))
-                        print(s[1])
+                        #print(s[1])
 
                 try:
                     jp = s[1].decode('shift-jis')
@@ -143,12 +143,12 @@ def dump(files):
 
                 if len(jp.strip()) == 0:
                     continue
-                #print(loc, jp)
+                print(loc, jp)
 
                 worksheet.write(row, 0, loc)
                 worksheet.write(row, 1, jp)
-                worksheet.write(row, 2, "=LEN(B%i)" % (row-1))
-                worksheet.write(row, 4, "=LEN(D%i)" % (row-1))
+                worksheet.write(row, 2, "=LEN(B%i)" % (row+1))
+                worksheet.write(row, 4, "=LEN(D%i)" % (row+1))
                 row += 1
 
     workbook.close()
