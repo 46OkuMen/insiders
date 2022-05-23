@@ -161,4 +161,22 @@ OTHER FILES:
 
 ## Typesetting
 * Dialogue max length per line: 40
-* Max lines on screen: 4?
+* Max lines on screen: 4
+
+## File Expansion
+* The files seem to be padded out to the nearest 0x400 (1,024) bytes.
+	* IDS  = C000 bytes
+	* ICS  = A800 bytes
+	* BOOK =  C00 bytes
+	* CLD  =  C00 bytes
+	* BASP = 7000 bytes
+* Does the padding itself get written into memory?
+	* IDS ends in memory around 0x31c30 - see if we can write some text in the 00's from BD00-C000
+		* Yes
+	* If so, next step would be to pad it another 0x400 and see what happens
+		* No, these ones don't get written
+	* There seems to be space in memory up to 31fe0 at least?
+* Look for references to the filename, along with something that mean "how much memory this file needs"
+	* For IDS, this would be 0xc000 (00 0c) or 0x10 (page length)
+	* In IN.COM 0x84 - IDS 00 00 c0 00 00
+	* Increasing this writes some garbage bytes to the next few rows? 
